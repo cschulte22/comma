@@ -31,7 +31,6 @@ require 'comma/relation' if defined?(ActiveRecord::Relation)
 require 'comma/extractors'
 require 'comma/generator'
 require 'comma/array'
-require 'comma/gen'
 require 'comma/object'
 
 #Load into Rails controllers
