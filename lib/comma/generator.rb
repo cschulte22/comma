@@ -25,12 +25,15 @@ module Comma
     private
 
     def append_csv(csv, iterator_method)
-      return '' if @instance.empty?
-      unless @options.has_key?(:write_headers) && !@options[:write_headers]
-        csv << @instance.first.to_comma_headers(@style)
-      end
+      i = 0
       @instance.send(iterator_method) do |object|
+        if i == 0
+          unless @options.has_key?(:write_headers) && !@options[:write_headers]
+            csv << object.to_comma_headers(@style)
+          end
+        end
         csv << object.to_comma(@style)
+        i += 1
       end
     end
 
