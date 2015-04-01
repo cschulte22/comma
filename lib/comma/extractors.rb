@@ -19,11 +19,19 @@ module Comma
   end
 
   class HeaderExtractor < Extractor
-    
+
     def method_missing(sym, *args, &block)
       if sym == :custom_columns
         if block
-          @results += @instance.instance_eval(&block).collect {|arr| arr.first}
+          if @instance.class.in? [CourtCase, Company, Client, Expense, TimeEntry]
+           # We want to collect all the custom field headers for the given scope
+            scope = CustomField.class_to_scope @instance.class
+  #          binding.pry if @instance.class.name.in? ['TimeEntry']
+            @results += @instance.firm.custom_fields.send(scope).map(&:name)
+          else
+            # if it's not a new custom fields class, do things the way we used to
+            @results += @instance.instance_eval(&block).collect {|arr| arr.first}
+          end
         else
           @results += @instance.instance_eval(args.to_s).collect {|arr| arr.first}
         end
