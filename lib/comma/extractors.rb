@@ -19,22 +19,31 @@ module Comma
   end
 
   class HeaderExtractor < Extractor
-
+    @headers_hit = []
     def method_missing(sym, *args, &block)
       if sym == :custom_columns
         if block
-          if @instance.class.in? [CourtCase, Company, Client, Expense, TimeEntry]
-           # We want to collect all the custom field headers for the given scope
-            scope = CustomField.class_to_scope @instance.class
-  #          binding.pry if @instance.class.name.in? ['TimeEntry']
-            @results += @instance.firm.custom_fields.send(scope).map(&:name)
-          else
+#           if @instance.class.in? [CourtCase, Company, Client, Expense, TimeEntry]
+# #            binding.pry if @instance.class.in? [Company] # fix should be the same for Client and Company
+#            # We want to collect all the custom field headers for the given scope
+#             scope = CustomField.class_to_scope @instance.class
+#   #          binding.pry if @instance.class.name.in? ['TimeEntry']
+#             headers = @instance.firm.custom_fields.send(scope).map(&:name)
+#             @results += headers unless @results.include? headers
+#           else
             # if it's not a new custom fields class, do things the way we used to
-            @results += @instance.instance_eval(&block).collect {|arr| arr.first}
-          end
+          @results += @instance.instance_eval(&block).collect {|arr| arr.first}
+          # end
         else
           @results += @instance.instance_eval(args.to_s).collect {|arr| arr.first}
         end
+      elsif sym == :custom_fields
+#       binding.pry if @instance.class.in? [Company] # fix should be the same for Client and Company
+       # We want to collect all the custom field headers for the given scope
+        scope = CustomField.class_to_scope @instance.class
+#          binding.pry if @instance.class.name.in? ['TimeEntry']
+        headers = @instance.firm.custom_fields.send(scope).map(&:name)
+        @results += headers
       else
         @results << sym.to_s.humanize if args.blank?
         args.each do |arg|
@@ -58,7 +67,7 @@ module Comma
   class DataExtractor < Extractor
 
     def method_missing(sym, *args, &block)
-      if sym == :custom_columns
+      if sym == :custom_columns || sym == :custom_fields
         if block
           @results += @instance.instance_eval(&block).collect {|arr| arr.last}
         else
